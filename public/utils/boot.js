@@ -312,7 +312,7 @@
             id: 'GameCanvas',
             debugMode: settings.debug ? cc.debug.DebugMode.INFO : cc.debug.DebugMode.ERROR,
             showFPS: settings.debug,
-            frameRate: 60,
+            frameRate: 30,
             groupList: settings.groupList,
             collisionMatrix: settings.collisionMatrix,
         };

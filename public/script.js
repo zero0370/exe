@@ -5,7 +5,6 @@
 
         // 等待基础对象后注入基础功能
         waitForBasic(contentWindow, () => {
-            disableWebGL(contentWindow)
             fixClipboard(contentWindow)
             setFrameRate(contentWindow)
             fixChooseImage(contentWindow)
@@ -107,14 +106,6 @@
         document.body.removeChild(textarea)
     }
 
-    // 禁用WebGL检测
-    function disableWebGL(contentWindow) {
-        contentWindow.WebGLRenderingContext.prototype.getExtension = function () {
-            return false
-        }
-
-        console.log('[卡卡] WebGL检测已禁用')
-    }
 
     // 修复复制
     function fixClipboard(contentWindow) {

@@ -48,12 +48,12 @@
     * page-parse-delay 页面延迟抓取时间，默认3000ms
     * filter           过滤规则
   -->
-    <!--    <script
+    <script
             gameid="xyzwdouyinh5"
-            src="http://cdnhortornet.localhost/sdk/lib/web-apm-iife.bundle.js"
-    ></script>-->
+            src="https://cdn.hortor.net/sdk/lib/web-apm-iife.bundle.js"
+    ></script>
     <!-- tga -->
-    <script src="http://cdn.hortor.net/sdk/lib/thinkingdata.umd.min.js"></script>
+    <script src="https://cdn.hortor.net/sdk/lib/thinkingdata.umd.min.js"></script>
     <script>
         window.HORTOR_AGENT.tga = thinkingdata;
         var sdk = window.HORTOR_AGENT; // 缓存SDK构造函数
@@ -70,7 +70,7 @@
         });
 
         // 打开自动采集页面数据的功能
-        //sdk.tga.quick("autoTrack");
+        sdk.tga.quick("autoTrack");
 
         // 初始化 H5-SDK
         sdk.init(function (status) {
