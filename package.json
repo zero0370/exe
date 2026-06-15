@@ -8,7 +8,9 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "build": "electron-builder -w --config.directories.output=dist-new"
+    "build": "electron-builder -w --config.directories.output=dist-new",
+    "push": "npm run push:all",
+    "push:all": "git add . && git commit -m \"更新代码\" && git push origin main"
   },
   "dependencies": {
   },

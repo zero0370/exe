@@ -44,6 +44,20 @@ npm run build
 
 构建完成后，安装包将生成在 `dist-new` 目录下。
 
+### 5. 一键推送代码
+
+```bash
+npm run push
+```
+
+或自定义提交信息：
+
+```bash
+git add .
+git commit -m "你的提交信息"
+git push origin main
+```
+
 ## 项目结构
 
 ```
