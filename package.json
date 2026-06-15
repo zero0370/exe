@@ -1,0 +1,63 @@
+{
+  "name": "com.map.naughty",
+  "version": "8.0.0",
+  "description": "缺德地图",
+  "author": "example.com",
+  "homepage": "https://electron-vite.org",
+  "main": "electron/main/index.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "build": "electron-builder -w --config.directories.output=dist-new"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "electron": "^33.4.11",
+    "electron-builder": "^24.13.3",
+    "nodemon": "^3.0.1"
+  },
+  "build": {
+    "appId": "com.map.naughty",
+    "productName": "缺德地图",
+    "icon": "resources/缺德地图.png",
+    "files": [
+      "electron/**/*",
+      "public/**/*",
+      "resources/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "resources",
+      "output": "dist-new"
+    },
+    "win": {
+      "icon": "resources/缺德地图.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "缺德地图",
+      "include": "build/installer.nsh",
+      "warningsAsErrors": false
+    }
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
+  }
+}
