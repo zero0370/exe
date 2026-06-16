@@ -1,141 +1,55 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <meta charset="utf-8" />
-    <title>Cocos Creator | tk</title>
+  <meta charset="utf-8" />
+  <title>Cocos Creator | tk</title>
+  <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1, minimum-scale=1,maximum-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="renderer" content="webkit" />
+  <meta name="force-rendering" content="webkit" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="msapplication-tap-highlight" content="no" />
+  <meta name="full-screen" content="yes" />
+  <meta name="x5-fullscreen" content="true" />
+  <meta name="360-fullscreen" content="true" />
+  <meta name="screen-orientation" content="portrait" />
+  <meta name="x5-orientation" content="portrait" />
+  <meta name="x5-page-mode" content="app" />
+  <link rel="stylesheet" type="text/css" href="style-mobile.css" />
+  <link rel="icon" href="favicon.ico" />
 
-    <!--http://www.html5rocks.com/en/mobile/mobifying/-->
-    <meta name="viewport"
-        content="width=device-width,user-scalable=no,initial-scale=1, minimum-scale=1,maximum-scale=1" />
-    <!--https://developer.apple.com/library/safari/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="format-detection" content="telephone=no" />
-    <!-- force webkit on 360 -->
-    <meta name="renderer" content="webkit" />
-    <meta name="force-rendering" content="webkit" />
-    <!-- force edge on IE -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <meta name="msapplication-tap-highlight" content="no" />
-    <!-- force full screen on some browser -->
-    <meta name="full-screen" content="yes" />
-    <meta name="x5-fullscreen" content="true" />
-    <meta name="360-fullscreen" content="true" />
-    <!-- force screen orientation on some browser -->
-    <meta name="screen-orientation" content="portrait" />
-    <meta name="x5-orientation" content="portrait" />
-    <!--fix fireball/issues/3568 -->
-    <!--<meta name="browsermode" content="application">-->
-    <meta name="x5-page-mode" content="app" />
-    <!--<link rel="apple-touch-icon" href=".png" />-->
-    <!--<link rel="apple-touch-icon-precomposed" href=".png" />-->
-    <link rel="stylesheet" type="text/css" href="style-mobile.css" />
-    <link rel="icon" href="favicon.ico" />
-
-    <!-- 控制 Referer 策略，防止泄露来源网址 -->
-    <meta name="referrer" content="no-referrer" />
-
-    <!-- H5-SDK -->
-    <script src="https://cdn.hortor.net/sdk/sdk_agent.min.js"></script>
-    <!--
-    apm
-    script引入sdk就会自动初始化上报
-    * 标签可配置参数
-    * appid/gameid     上报项目ID
-    * debug            是否是测试环境
-    * report-delay     上报延迟，默认 2000ms
-    * page-parse-delay 页面延迟抓取时间，默认3000ms
-    * filter           过滤规则
-  -->
-    <script
-            gameid="xyzwdouyinh5"
-            src="https://cdn.hortor.net/sdk/lib/web-apm-iife.bundle.js"
-    ></script>
-    <!-- tga -->
-    <script src="https://cdn.hortor.net/sdk/lib/thinkingdata.umd.min.js"></script>
-    <script>
-        window.HORTOR_AGENT.tga = thinkingdata;
-        var sdk = window.HORTOR_AGENT; // 缓存SDK构造函数
-        window.__HORTOR_SDK__ = sdk;
-
-        // tga 初始化
-        sdk.tga.init({
-            appId: "d2709516c99b4eea878b351ce6b0b0ca", //系统分配的APPID
-            name: "__thinkdata__", //全局的调用变量名，可以任意设置，后续的调用使用该名称即可
-            serverUrl: "https://tga.hortorgames.com", //数据上传的URL
-            send_method: "ajax", //数据上传方式 ajax image 两种方式，按需要切换
-            useAppTrack: false, // 打通 APP 与 H5
-            showLog: true, //c控制台是否打印上报数据
-        });
-
-        // 打开自动采集页面数据的功能
-        sdk.tga.quick("autoTrack");
-
-        // 初始化 H5-SDK
-        sdk.init(function (status) {
-            /*if (status) {
-                    // status为true,初始化成功
-                    // 上报初始化
-                    sdk.tga.track("sdk_init");
-                    console.debug("SDK init success.");
-                } else {
-                    // status 为false,初始化失败，查找原因，或者刷新页面重试
-                    console.debug("SDK init error.");
-                }*/
-        });
-    </script>
+  <!-- 控制 Referer 策略，防止泄露来源网址 -->
+  <meta name="referrer" content="no-referrer" />
 </head>
-
 <body>
-    <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="0"></canvas>
-    <div id="splash">
-        <div class="progress-bar stripes">
-            <span style="width: 0%"></span>
-        </div>
+  <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="0"></canvas>
+  <div id="splash">
+    <div class="progress-bar stripes">
+      <span style="width: 0%"></span>
     </div>
-    <script src="src/settings.js" charset="utf-8"></script>
-    <script src="game-defines.js" charset="utf-8"></script>
-    <script src="utils/boot.js" charset="utf-8"></script>
-    <script src="script.js" charset="utf-8"></script>
+  </div>
 
-
-    <script type="text/javascript">
-        (function () {
-            // open web debugger console
-            if (typeof VConsole !== "undefined") {
-                window.vConsole = new VConsole();
-            }
-
-            var debug = window._CCSettings.debug;
-            var splash = document.getElementById("splash");
-            splash.style.display = "none";
-
-            function loadScript(moduleName, cb) {
-                function scriptLoaded() {
-                    document.body.removeChild(domScript);
-                    domScript.removeEventListener("load", scriptLoaded, false);
-                    cb && cb();
-                }
-                var domScript = document.createElement("script");
-                domScript.async = true;
-                domScript.src = moduleName;
-                domScript.addEventListener("load", scriptLoaded, false);
-                document.body.appendChild(domScript);
-            }
-
-            loadScript(debug ? "cocos2d-js.js" : "cocos2d-js-min.js", function () {
-                try {
-                    cc.view.enableAutoFullScreen = function () { };
-                } catch (e) { }
-                if (CC_PHYSICS_BUILTIN || CC_PHYSICS_CANNON) {
-                    loadScript(debug ? "physics.js" : "physics-min.js", window.boot);
-                } else {
-                    window.boot();
-                }
-            });
-        })();
-    </script>
+  <!-- 初始化脚本 -->
+  <script type="text/javascript">    
+    var unsafeWindow = window;
+  </script>
+  
+  <!-- SDK Mock -->
+  <script src="patch.js" charset="utf-8"></script>
+  <script src="src/settings.js" charset="utf-8"></script>
+  <script src="game-defines.js" charset="utf-8"></script>
+  <script src="main.js" charset="utf-8"></script>
+  <script src="cocos2d-js-min.js" charset="utf-8"></script>
+  <script src="script.js" charset="utf-8"></script>
+  
+  <script type="text/javascript">
+    (function () {
+      var splash = document.getElementById('splash')
+      splash.style.display = 'none'
+      window.boot()
+    })()
+  </script>
 </body>
-
 </html>

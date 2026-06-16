@@ -1,25 +1,11 @@
-(function () {
+﻿(function () {
     function script(contentWindow) {
         if (contentWindow._script) return
         contentWindow._script = true
 
-        // 等待基础对象后注入基础功能
-        waitForBasic(contentWindow, () => {
-            fixClipboard(contentWindow)
-            setFrameRate(contentWindow)
-            fixChooseImage(contentWindow)
-        })
-
         // 各功能独立检测、独立注入
-        waitForModule(contentWindow, 'Configs', (m) => {
-            modifyGameConfigs(m)
-        })
-
-        waitForModule(contentWindow, 'MergePlayTilesContainer', (m) => {
-            if (m && m.MergePlayTilesContainer) {
-                fixVibration(m.MergePlayTilesContainer)
-            }
-        })
+        fixChooseImage(contentWindow)
+        waitForPlatformManager(contentWindow)
 
         waitForModule(contentWindow, 'HeroAttributeToolTip', (m) => {
             if (m && m.HeroAttributeToolTip) {
@@ -71,17 +57,6 @@
 
     }
 
-    // 等待基础对象
-    function waitForBasic(contentWindow, callback) {
-        const interval = setInterval(() => {
-            if (contentWindow.cc?.game && contentWindow.HORTOR_AGENT) {
-                clearInterval(interval)
-                callback()
-            }
-        }, 100)
-        setTimeout(() => clearInterval(interval), 30000)
-    }
-
     // 等待模块加载
     function waitForModule(contentWindow, moduleName, callback) {
         const interval = setInterval(() => {
@@ -96,6 +71,42 @@
         setTimeout(() => clearInterval(interval), 60000)
     }
 
+    // 等待平台管理器加载
+    function waitForPlatformManager(contentWindow) {
+        let logged = false
+
+        const patchPlatformManager = function () {
+            try {
+                const pm = contentWindow.__require('PlatformManager').PlatformManager.instance
+                if (!pm) return
+
+                pm.getClientVersion = function () {
+                    return Promise.resolve({ version: contentWindow.CODE_VERSION })
+                }
+
+                pm.setClipboardData = function (request) {
+                    const textarea = document.createElement('textarea')
+                    textarea.value = request.data
+                    document.body.appendChild(textarea)
+                    textarea.select()
+                    document.execCommand('copy')
+                    document.body.removeChild(textarea)
+                    contentWindow.__require('TipsManager').SHOW_TIP('复制成功')
+                }
+
+                if (!logged) {
+                    logged = true
+                    console.log('[卡卡] 复制功能已修复')
+                    console.log('[卡卡] 客户端版本接口已修复')
+                }
+            } catch (e) { }
+        }
+
+        patchPlatformManager()
+        const interval = setInterval(patchPlatformManager, 300)
+        setTimeout(() => clearInterval(interval), 60000)
+    }
+
     // 复制文本到剪贴板
     function copyText(text) {
         const textarea = document.createElement('textarea')
@@ -106,65 +117,31 @@
         document.body.removeChild(textarea)
     }
 
-
-    // 修复复制
-    function fixClipboard(contentWindow) {
-        contentWindow.HORTOR_AGENT._chan = {
-            call: function (request) {
-                if (request.method === 'setClipboard' && request.params.text) {
-                    copyText(request.params.text)
-                }
-            }
-        }
-
-        console.log('[卡卡] 复制功能已修复')
-    }
-
-    // 设置帧率
-    function setFrameRate(contentWindow) {
-        const oriFrameRate = contentWindow.cc.game.getFrameRate.bind(contentWindow.cc.game)
-        contentWindow.cc.game.getFrameRate = function () {
-            const targetFrameRate = 60
-            const currentFrameRate = oriFrameRate()
-            if (currentFrameRate !== targetFrameRate) {
-                contentWindow.cc.game.setFrameRate(targetFrameRate)
-            }
-            return targetFrameRate
-        }
-
-        console.log('[卡卡] 60帧率已设置')
-    }
-
-    // 自定义头像选择
+    // 修复头像选择
     function fixChooseImage(contentWindow) {
-        contentWindow.HORTOR_AGENT.chooseImage = function (callback, options) {
+        contentWindow.__HORTOR_SDK__.chooseImage = function (callback, options) {
             const input = document.createElement('input')
             input.type = 'file'
             input.accept = 'image/*'
-            input.style.display = 'none'
-            document.body.appendChild(input)
-
             input.onchange = (e) => {
                 const file = e.target.files[0]
-                document.body.removeChild(input)
                 if (!file) return
-
                 const img = new Image()
                 img.onload = () => {
                     // 创建小图 98x98
                     const smallCanvas = document.createElement('canvas')
                     smallCanvas.width = 98
                     smallCanvas.height = 98
-                    smallCanvas.getContext('2d').drawImage(img, 0, 0, 98, 98)
+                    const smallCtx = smallCanvas.getContext('2d')
+                    smallCtx.drawImage(img, 0, 0, 98, 98)
                     const smallBase64 = smallCanvas.toDataURL('image/jpeg', 1).split(',')[1]
-
                     // 创建大图 512x512
                     const largeCanvas = document.createElement('canvas')
                     largeCanvas.width = 512
                     largeCanvas.height = 512
-                    largeCanvas.getContext('2d').drawImage(img, 0, 0, 512, 512)
+                    const largeCtx = largeCanvas.getContext('2d')
+                    largeCtx.drawImage(img, 0, 0, 512, 512)
                     const largeBase64 = largeCanvas.toDataURL('image/jpeg', 1).split(',')[1]
-
                     callback({ base64s: [largeBase64, smallBase64], images: [], imagePath: '' })
                 }
                 img.src = URL.createObjectURL(file)
@@ -172,31 +149,7 @@
             input.click()
         }
 
-        console.log('[卡卡] 自定义头像选择已启用')
-    }
-
-    // 震动禁用
-    function fixVibration(MergePlayTilesContainer) {
-        MergePlayTilesContainer.prototype.makeVibration = function () {
-            return false
-        }
-
-        console.log('[卡卡] 震动已禁用')
-    }
-
-    // 修改配置（仅保留十殿加速，删除了清空1-150关怪物的逻辑）
-    function modifyGameConfigs(config) {
-        // 十殿加速
-        const NightMare = config.NightMare.getById.bind(config.NightMare)
-        config.NightMare.getById = function (id) {
-            const nightmare = NightMare(id)
-            if (id === 1) {
-                return { ...nightmare, BattleSpeed: 100 }
-            }
-            return nightmare
-        }
-
-        console.log('[卡卡] 十殿加速已启用')
+        console.log('[卡卡] 头像选择已修复')
     }
 
     // 英雄属性面板增强 - 扩展显示更多属性
