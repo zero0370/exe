@@ -1,10 +1,12 @@
-# 依赖
+﻿# 依赖
 node_modules/
 
 # 构建产物
+build/
 dist-new/
 dist-v0.1.0/
 dist/
+out/
 *.exe
 *.exe.blockmap
 *.dmg
@@ -22,12 +24,14 @@ desktop.ini
 # 编辑器
 .vscode/
 .idea/
+.qoder/
 *.swp
 *.swo
 *~
 
-# 日志
+# 日志和临时文件
 *.log
+*.tmp
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -35,3 +39,6 @@ yarn-error.log*
 # 缓存
 .eslintcache
 .cache/
+
+# 解包目录
+*解压*/

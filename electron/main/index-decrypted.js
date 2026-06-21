@@ -4,7 +4,12 @@ const { app, BrowserWindow, dialog, ipcMain, screen } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const resourceCache = require('./resource-cache');
-
+// Prefer discrete/high-performance GPU for Chromium's GPU process.
+app.commandLine.appendSwitch("force_high_performance_gpu");
+app.commandLine.appendSwitch("ignore-gpu-blocklist");
+app.commandLine.appendSwitch("enable-gpu-rasterization");
+app.commandLine.appendSwitch("enable-zero-copy");
+app.commandLine.appendSwitch("use-angle", "d3d11");
 
 
 // ==================== 创建窗口 ====================
@@ -357,8 +362,12 @@ function createWindow(binPath, index, totalCount = 1) {
                     // 提供 GM_* API 的简单实现（如果脚本需要）
                     if (typeof GM_getValue === 'undefined') {
                       window.GM_getValue = function(key, defaultValue) {
-                        const value = localStorage.getItem('GM_' + key);
-                        return value !== null ? JSON.parse(value) : defaultValue;
+                        try {
+                          const value = localStorage.getItem('GM_' + key);
+                          return value !== null ? JSON.parse(value) : defaultValue;
+                        } catch (e) {
+                          return defaultValue;
+                        }
                       };
                     }
                     
@@ -386,6 +395,15 @@ function createWindow(binPath, index, totalCount = 1) {
                         return keys;
                       };
                     }
+
+                    if (typeof GM_addStyle === 'undefined') {
+                      window.GM_addStyle = function(css) {
+                        const style = document.createElement('style');
+                        style.textContent = css || '';
+                        (document.head || document.documentElement || document.body).appendChild(style);
+                        return style;
+                      };
+                    }
                     
                     if (typeof GM_xmlhttpRequest === 'undefined') {
                       window.GM_xmlhttpRequest = function(details) {
@@ -404,23 +422,89 @@ function createWindow(binPath, index, totalCount = 1) {
                               status: xhr.status,
                               statusText: xhr.statusText,
                               responseText: xhr.responseText,
-                              responseHeaders: xhr.getAllResponseHeaders()
+                              response: xhr.response,
+                              responseHeaders: xhr.getAllResponseHeaders(),
+                              finalUrl: xhr.responseURL
                             });
                           }
                         };
                         
                         xhr.onerror = function() {
-                          if (details.onerror) details.onerror(xhr);
+                          if (details.onerror) details.onerror({ status: 0, responseText: '', error: xhr });
                         };
+
+                        xhr.ontimeout = function() {
+                          if (details.ontimeout) details.ontimeout({ status: 0, responseText: '' });
+                        };
+
+                        if (details.responseType) xhr.responseType = details.responseType;
+                        if (details.timeout) xhr.timeout = details.timeout;
                         
                         xhr.send(details.data || null);
-                        return xhr;
+                        return { abort: function() { xhr.abort(); } };
                       };
                     }
                     
                     if (typeof GM_info === 'undefined') {
-                      window.GM_info = { scriptHandler: 'Electron' };
+                      window.GM_info = { scriptHandler: 'Electron', version: '1.0' };
                     }
+
+                    if (typeof GM_log === 'undefined') {
+                      window.GM_log = function() {
+                        console.log.apply(console, ['[GM]'].concat(Array.prototype.slice.call(arguments)));
+                      };
+                    }
+
+                    if (typeof GM_openInTab === 'undefined') {
+                      window.GM_openInTab = function(url) {
+                        window.open(url);
+                        return { close: function() {}, closed: false };
+                      };
+                    }
+
+                    if (typeof GM_setClipboard === 'undefined') {
+                      window.GM_setClipboard = function(text) {
+                        try {
+                          if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(String(text || ''));
+                          }
+                        } catch (e) {}
+                      };
+                    }
+
+                    if (typeof GM_notification === 'undefined') {
+                      window.GM_notification = function(details, ondone) {
+                        const text = typeof details === 'string' ? details : (details && (details.text || details.title)) || '';
+                        console.log('[GM_notification]', text);
+                        if (typeof ondone === 'function') setTimeout(ondone, 0);
+                      };
+                    }
+
+                    if (typeof GM === 'undefined') {
+                      window.GM = {};
+                    }
+                    window.GM.getValue = window.GM.getValue || function(key, defaultValue) {
+                      return Promise.resolve(window.GM_getValue(key, defaultValue));
+                    };
+                    window.GM.setValue = window.GM.setValue || function(key, value) {
+                      window.GM_setValue(key, value);
+                      return Promise.resolve();
+                    };
+                    window.GM.deleteValue = window.GM.deleteValue || function(key) {
+                      window.GM_deleteValue(key);
+                      return Promise.resolve();
+                    };
+                    window.GM.listValues = window.GM.listValues || function() {
+                      return Promise.resolve(window.GM_listValues());
+                    };
+                    window.GM.addStyle = window.GM.addStyle || window.GM_addStyle;
+                    window.GM.xmlHttpRequest = window.GM.xmlHttpRequest || window.GM_xmlhttpRequest;
+                    window.GM.openInTab = window.GM.openInTab || window.GM_openInTab;
+                    window.GM.setClipboard = window.GM.setClipboard || function(text) {
+                      window.GM_setClipboard(text);
+                      return Promise.resolve();
+                    };
+                    window.GM.notification = window.GM.notification || window.GM_notification;
                     
                     console.log('[扩展脚本] ✓ 油猴兼容层已加载');
                     
@@ -799,7 +883,7 @@ app.whenReady().then(async () => {
       console.log(`[应用] 为 ${binFiles.length} 个 BIN 文件创建窗口`);
       for (let i = 0; i < binFiles.length; i++) {
         const binPath = binFiles[i];
-        createWindow(binPath, i, binFiles.length); // 传入总数
+        createWindow(binPath, i, binFiles.length); // pass total count
       }
     } else {
       // 没有选择 bin 文件，直接关闭应用
